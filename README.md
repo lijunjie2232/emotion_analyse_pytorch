@@ -80,7 +80,8 @@ pip install -r requirements.txt
 2. トレーニングを開始：
 
 - method 1: jupyter notebookを起動、main.ipynbを使う
-- method 2: python main.pyを実行
+- method 2: `python main.py`を実行
+- method 3: `torchrun --nproc-per-node=2 --master-port 29500 main_ddp.py`をpytorch DPP (分散データ並列処理)で実行、複数GPUが必要。
 
 3. トレーニングを再開：
 
