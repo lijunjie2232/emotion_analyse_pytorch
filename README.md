@@ -93,7 +93,7 @@ if checkpoint.is_file():
 
 ## 📊 トレーニング結果
 - 最高検証精度：`best_acc`変数に記録
-- トレーニングログはNotebookのプログレスバーでリアルタイム表示
+![accuracy_and_loss.png](./accuracy_and_loss.png)
 
 ## 📄 参考文献
 - ultralytics: https://github.com/ultralytics/ultralytics
