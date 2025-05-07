@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
 from model import EmotionNet
-from utils import load, save, val_epoch, train_epoch
+from utils import load, save, val_epoch, train_epoch, plot
 from tqdm import tqdm
 import shutil
 
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     train_patience = 20
     best_checkpoint = Path("best_model.pt")
     last_checkpoint = Path("last_model.pt")
-    
+
     batch_size = 128
     num_workers = 8
 
@@ -79,6 +79,7 @@ if __name__ == "__main__":
     val_dataloader = DataLoader(
         val_dataset,
         batch_size=batch_size,
+        num_workers=num_workers,
         shuffle=False,
     )
 
@@ -110,6 +111,10 @@ if __name__ == "__main__":
 
     # ## train model
     loop = tqdm(range(start_epoch + 1, epochs))
+    train_acc_list = []
+    train_loss_list = []
+    val_acc_list = []
+    val_loss_list = []
     best_acc = 0
     patience = train_patience
     for epoch in loop:
@@ -123,6 +128,8 @@ if __name__ == "__main__":
             scaler,
             device=device,
         )
+        train_acc_list.append(train_acc)
+        train_loss_list.append(train_loss)
         loop.set_postfix(
             train_acc=train_acc,
             train_loss=train_loss,
@@ -133,6 +140,8 @@ if __name__ == "__main__":
             criterion,
             device=device,
         )
+        val_acc_list.append(val_acc)
+        val_loss_list.append(val_loss)
         loop.set_postfix(
             train_acc=train_acc,
             train_loss=train_loss,
@@ -141,6 +150,13 @@ if __name__ == "__main__":
         )
 
         save(model, optimizer, epoch, last_checkpoint)
+        plot(
+            train_acc_list,
+            train_loss_list,
+            val_acc_list,
+            val_loss_list,
+            fig_save_dir="./",
+        )
 
         if val_acc > best_acc:
             shutil.copyfile(last_checkpoint, best_checkpoint)
