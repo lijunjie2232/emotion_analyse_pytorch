@@ -173,6 +173,11 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+# output
+output/
+run/
+exp*/
+
 # checkpoint
 *.pt
 *.ckpt

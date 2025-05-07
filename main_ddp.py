@@ -54,7 +54,7 @@ def main(local_rank, world_size, args):
 
     lr = args.lr
     step_size = args.step_size
-    batch_size = args.batch_size
+    batch_size = args.batch_size // world_size
     num_workers = args.num_workers
     epochs = args.epochs
     start_epoch = args.start_epoch
@@ -151,7 +151,7 @@ def main(local_rank, world_size, args):
     ddp_model = DDP(
         model,
         device_ids=[local_rank],
-        find_unused_parameters=True,
+        # find_unused_parameters=True,
     )
 
     # ## build dataloader
@@ -189,6 +189,7 @@ def main(local_rank, world_size, args):
     best_acc = 0
     patience = train_patience
     for epoch in loop:
+        train_sampler.set_epoch(epoch)
         if local_rank == 0:
             loop.set_description(f"Epoch [{epoch+1}/{epochs}]")
         # torch.distributed.barrier()
