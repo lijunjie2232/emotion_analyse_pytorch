@@ -52,6 +52,7 @@ def main(local_rank, world_size, args):
     # device = "cuda:1"
     device = "cuda"
 
+    amp = args.amp
     lr = args.lr
     step_size = args.step_size
     batch_size = args.batch_size // world_size
@@ -70,7 +71,7 @@ def main(local_rank, world_size, args):
     torch.backends.cudnn.enabled = True
 
     # ## random seed
-    seed = args.seed + get_rank()
+    seed = args.seed  # + get_rank()
     torch.manual_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
@@ -99,8 +100,7 @@ def main(local_rank, world_size, args):
     )
     val_transformer = transforms.Compose(
         [
-            transforms.Resize((256, 256)),
-            transforms.CenterCrop(224),
+            transforms.Resize((224, 224)),
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=[0.485, 0.456, 0.406],
@@ -125,6 +125,7 @@ def main(local_rank, world_size, args):
     ).cuda()
 
     # ## build loss, optimizer and lr_scheduler
+
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, betas=(0.9, 0.999))
     scheduler = torch.optim.lr_scheduler.StepLR(
         optimizer,
@@ -202,6 +203,7 @@ def main(local_rank, world_size, args):
             scaler,
             device=device,
             progress=local_rank == 0,
+            fp16=amp,
         )
         train_acc_list.append(train_acc)
         train_loss_list.append(train_loss)
