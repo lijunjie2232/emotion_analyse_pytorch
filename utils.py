@@ -29,7 +29,6 @@ def train_epoch(
     total_loss = 0.0
     total_count = 0
     ateru = 0
-    assert scaler is not None or not fp16
 
     for batch_idx, (data, target) in enumerate(loop):
         data = data.to(device)
@@ -42,7 +41,7 @@ def train_epoch(
         ):
             output = model(data)
             loss = criterion(output, target)
-        if fp16:
+        if fp16 and scaler:
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
@@ -176,7 +175,7 @@ def parse_args():
         help="Use mixed precision training",
     )
     parser.add_argument(
-        "--continue",
+        "--use_ckpt",
         action="store_true",
         help="Continue training from the last saved checkpoint",
     )
