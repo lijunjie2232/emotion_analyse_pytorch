@@ -72,10 +72,11 @@ def main(local_rank, world_size, args):
     torch.backends.cudnn.enabled = True
 
     # ## random seed
-    seed = args.seed  # + get_rank()
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-    random.seed(seed)
+    if args.seed >= 0:
+        seed = args.seed + get_rank()
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+        random.seed(seed)
 
     # ## prepare dataset
     # Download latest version
