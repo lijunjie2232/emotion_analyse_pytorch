@@ -175,6 +175,11 @@ def parse_args():
         action="store_true",
         help="Use mixed precision training",
     )
+    parser.add_argument(
+        "--continue",
+        action="store_true",
+        help="Continue training from the last saved checkpoint",
+    )
 
     # Checkpoint paths
     parser.add_argument(
