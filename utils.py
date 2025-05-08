@@ -170,6 +170,11 @@ def parse_args():
         default=20,
         help="Patience for early stopping (default: 20)",
     )
+    parser.add_argument(
+        "--amp",
+        action="store_true",
+        help="Use mixed precision training",
+    )
 
     # Checkpoint paths
     parser.add_argument(
