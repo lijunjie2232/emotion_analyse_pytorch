@@ -55,6 +55,7 @@ def main(local_rank, world_size, args):
     amp = args.amp
     lr = args.lr
     step_size = args.step_size
+    use_ckpt = args.use_ckpt
     batch_size = args.batch_size // world_size
     num_workers = args.num_workers
     epochs = args.epochs
@@ -135,7 +136,7 @@ def main(local_rank, world_size, args):
     criterion = nn.CrossEntropyLoss()
     scaler = torch.amp.GradScaler()
 
-    if last_checkpoint.is_file() and args.continue:
+    if last_checkpoint.is_file() and use_ckpt:
         ckp_epoch = load(
             model=model,
             optimizer=optimizer,

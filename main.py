@@ -37,6 +37,7 @@ if __name__ == "__main__":
     amp = args.amp
     lr = args.lr
     step_size = args.step_size
+    use_ckpt = args.use_ckpt
     batch_size = args.batch_size
     num_workers = args.num_workers
     epochs = args.epochs
@@ -130,7 +131,7 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss()
     scaler = torch.amp.GradScaler()
 
-    if last_checkpoint.is_file() and args.continue:
+    if last_checkpoint.is_file() and use_ckpt:
         start_epoch = load(
             model=model,
             optimizer=optimizer,
