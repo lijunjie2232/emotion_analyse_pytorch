@@ -77,6 +77,8 @@ def main(local_rank, world_size, args):
         torch.manual_seed(seed)
         np.random.seed(seed)
         random.seed(seed)
+    else:
+        seed = 0
 
     # ## prepare dataset
     # Download latest version
