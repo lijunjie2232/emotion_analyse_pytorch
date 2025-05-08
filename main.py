@@ -6,30 +6,63 @@ from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
 from model import EmotionNet
-from utils import load, save, val_epoch, train_epoch, plot
+from utils import (
+    load,
+    save,
+    val_epoch,
+    train_epoch,
+    ddp_setup,
+    ddp_cleanup,
+    parse_args,
+    get_logger,
+    plot,
+)
 from tqdm import tqdm
 import shutil
+import os
+import numpy as np
+import random
+import warnings
 
+warnings.filterwarnings("ignore")
 
 if __name__ == "__main__":
+
+    args = parse_args()
+
+    # logger
+    logger = get_logger()
     # ## Hyper Parameters and Configs
     device = "cuda:1"
-    lr = 1e-3
-    step_size = 10
-    epochs = 120
-    start_epoch = -1
-    train_patience = 20
-    best_checkpoint = Path("best_model.pt")
-    last_checkpoint = Path("last_model.pt")
+    amp = args.amp
+    lr = args.lr
+    step_size = args.step_size
+    batch_size = args.batch_size
+    num_workers = args.num_workers
+    epochs = args.epochs
+    start_epoch = args.start_epoch
+    train_patience = args.train_patience
+    best_checkpoint = Path(args.best_checkpoint)
+    last_checkpoint = Path(args.last_checkpoint)
+    train_data_path = args.train_data_path
+    val_data_path = args.val_data_path
 
-    batch_size = 128
-    num_workers = 8
+    # ## cudnn acceleration
+    torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.enabled = True
+
+    # ## random seed
+    seed = args.seed
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
 
     # ## prepare dataset
     # Download latest version
-    data_id = "aadityasinghal/facial-expression-dataset"
+    data_id = args.data_id
     data_root = kagglehub.dataset_download(data_id)
-    print("Path to dataset files:", data_root)
+    logger.info("Path to dataset files: " + data_root)
     data_root = Path(data_root)
 
     # ## build data transforms
@@ -49,8 +82,7 @@ if __name__ == "__main__":
     )
     val_transformer = transforms.Compose(
         [
-            transforms.Resize((256, 256)),
-            transforms.CenterCrop(224),
+            transforms.Resize((224, 224)),
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=[0.485, 0.456, 0.406],
@@ -61,11 +93,11 @@ if __name__ == "__main__":
 
     # ## build dataset
     train_dataset = ImageFolder(
-        root=data_root / "train" / "train",
+        root=data_root / train_data_path,
         transform=train_transformer,
     )
     val_dataset = ImageFolder(
-        root=data_root / "test" / "test",
+        root=data_root / val_data_path,
         transform=val_transformer,
     )
 
@@ -98,7 +130,7 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss()
     scaler = torch.amp.GradScaler()
 
-    if last_checkpoint.is_file():
+    if last_checkpoint.is_file() and args.continue:
         start_epoch = load(
             model=model,
             optimizer=optimizer,
@@ -127,6 +159,7 @@ if __name__ == "__main__":
             criterion,
             scaler,
             device=device,
+            fp16=amp,
         )
         train_acc_list.append(train_acc)
         train_loss_list.append(train_loss)
