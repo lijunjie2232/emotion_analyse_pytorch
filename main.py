@@ -11,8 +11,6 @@ from utils import (
     save,
     val_epoch,
     train_epoch,
-    ddp_setup,
-    ddp_cleanup,
     parse_args,
     get_logger,
     plot,
@@ -33,7 +31,7 @@ if __name__ == "__main__":
     # logger
     logger = get_logger()
     # ## Hyper Parameters and Configs
-    device = "cuda:1"
+    device = args.device
     amp = args.amp
     lr = args.lr
     step_size = args.step_size
@@ -54,10 +52,11 @@ if __name__ == "__main__":
     torch.backends.cudnn.enabled = True
 
     # ## random seed
-    seed = args.seed
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-    random.seed(seed)
+    if args.seed >= 0:
+        seed = args.seed
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+        random.seed(seed)
 
     # ## prepare dataset
     # Download latest version
