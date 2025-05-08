@@ -135,7 +135,7 @@ def main(local_rank, world_size, args):
     criterion = nn.CrossEntropyLoss()
     scaler = torch.amp.GradScaler()
 
-    if last_checkpoint.is_file():
+    if last_checkpoint.is_file() and args.continue:
         ckp_epoch = load(
             model=model,
             optimizer=optimizer,
